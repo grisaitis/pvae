@@ -47,8 +47,8 @@ class GeodesicLayer(RiemannianLayer):
     def __init__(self, in_features, out_features, manifold, over_param=False, weight_norm=False):
         super(GeodesicLayer, self).__init__(in_features, out_features, manifold, over_param, weight_norm)
 
-    def forward(self, input):
-        input = input.unsqueeze(-2).expand(*input.shape[:-(len(input.shape) - 2)], self.out_features, self.in_features)
+    def forward(self, input: torch.Tensor):
+        input = input.unsqueeze(-2).expand(*input.shape[:-1], self.out_features, self.in_features)
         res = self.manifold.normdist2plane(input, self.bias, self.weight,
                                                signed=True, norm=self.weight_norm)
         return res
