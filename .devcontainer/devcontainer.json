@@ -1,0 +1,73 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+	"name": "Python 3",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/python:3.7-buster",
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/devcontainers-contrib/features/apt-packages:1": {
+			"packages": [
+				"htop",
+				"curl",
+				"vim",
+				"tree"
+			]
+		},
+		"ghcr.io/devcontainers-contrib/features/vtop:2": {}
+	},
+	"forwardPorts": [
+		6006
+	],
+	"portsAttributes": {
+		"6006": {
+			"label": "tensorboard"
+		}
+	},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "./.devcontainer/postCreate.sh",
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.debugpy",
+				// "charliermarsh.ruff",
+				"ms-toolsai.tensorboard",
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"VisualStudioExptTeam.vscodeintellicode",
+				"foxundermoon.shell-format"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/workspaces/pvae/.venv/bin/python",
+				"editor.formatOnSave": false,
+				// "editor.formatOnSaveMode": "modifications",
+				"editor.formatOnPaste": false,
+				"[python]": {
+					"editor.formatOnSave": false
+					// "editor.codeActionsOnSave": {
+					// 	"source.fixAll": "explicit",
+					// 	"source.organizeImports": "explicit"
+					// },
+					// "editor.defaultFormatter": "charliermarsh.ruff"
+				},
+				// "[shellscript]": {
+				// 	"editor.defaultFormatter": "foxundermoon.shell-format"
+				// },
+				"[json]": {
+					"editor.formatOnSave": true
+				},
+				"python.terminal.activateEnvironment": true,
+				"python.terminal.activateEnvInCurrentTerminal": true,
+				"python.languageServer": "Pylance"
+			}
+		}
+	}
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}
