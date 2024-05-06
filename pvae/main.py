@@ -151,6 +151,9 @@ def test(epoch, agg):
             if epoch == args.epochs and args.iwae_samples > 0:
                 mlik = objectives.iwae_objective(model, data, K=args.iwae_samples)
                 b_mlik += mlik.sum(-1).item()
+            else:
+                mlik = objectives.iwae_objective(model, data, K=1)
+                b_mlik += mlik.sum(-1).item()
             b_loss += loss.item()
             if i == 0: model.reconstruct(data, runPath, epoch)
 
