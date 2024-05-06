@@ -79,6 +79,7 @@ parser.add_argument('--seed', type=int, default=0, metavar='S', help='random see
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 device = torch.device("cuda" if args.cuda else "cpu")
+print("Device:", device)
 args.prior_iso = args.prior_iso or args.posterior == 'RiemannianNormal'
 
 # Choosing and saving a random seed for reproducibility
