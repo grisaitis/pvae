@@ -162,7 +162,35 @@ def test(epoch, agg):
     print('====>             Test loss: {:.4f} mlik: {:.4f}'.format(agg['test_loss'][-1], agg['test_mlik'][-1]))
 
 
+def get_runtime_info() -> dict:
+    import pkg_resources
+    installed_packages = {pkg.key: pkg.version for pkg in pkg_resources.working_set}
+    return {
+        "os_uname_sysname": os.uname().sysname,
+        "os_uname_nodename": os.uname().nodename,
+        "os_uname_release": os.uname().release,
+        "os_uname_version": os.uname().version,
+        "os_uname_machine": os.uname().machine,
+        "python": sys.executable,
+        "python_version": sys.version,
+        "python_packages": installed_packages,
+        "torch_version": torch.__version__,
+        "torch_device": torch.cuda.get_device_name(0) if args.cuda else "cpu",
+        "nvidia_driver_version": torch._C._cuda_getDriverVersion(),
+        "cuda_version": torch.version.cuda,
+        "cuda_is_available": torch.cuda.is_available(),
+        "cuda_device_count": torch.cuda.device_count(),
+        "cuda_current_device": torch.cuda.current_device(),
+        "cudnn_version": torch.backends.cudnn.version(),
+        "cudnn_deterministic": torch.backends.cudnn.deterministic,
+        "cudnn_benchmark": torch.backends.cudnn.benchmark,
+    }
+
+
 if __name__ == '__main__':
+    with open('{}/runtime_info.json'.format(runPath), 'w') as fp:
+        json.dump(get_runtime_info(), fp, indent=2, sort_keys=True)
+
     with Timer('ME-VAE') as t:
         agg = defaultdict(list)
         print('Starting training...')
