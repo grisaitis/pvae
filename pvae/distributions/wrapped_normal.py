@@ -30,7 +30,8 @@ class WrappedNormal(torch.distributions.Distribution):
         self.softplus = softplus
         self.loc, self._scale = broadcast_all(loc, scale)
         self.manifold = manifold
-        self.manifold.assert_check_point_on_manifold(self.loc)
+        if self.manifold.c != 0:
+            self.manifold.assert_check_point_on_manifold(self.loc)
         self.device = loc.device
         if isinstance(loc, Number) and isinstance(scale, Number):
             batch_shape, event_shape = torch.Size(), torch.Size()
