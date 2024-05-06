@@ -1,4 +1,6 @@
-# python pvae/main.py \
+#!/bin/bash
+
+# python -u pvae/main.py \
 #     --model mnist \
 #     --manifold Euclidean \
 #     --save-freq 0 \
@@ -22,7 +24,7 @@
 # /workspaces/pvae/experiments/2024-04-03T16_29_05.924731iitut_rj 
 # - iwae (k=10) after 58 epochs = 147.1126
 
-python pvae/main.py \
+python -u pvae/main.py \
     --model mnist \
     --manifold PoincareBall \
     --save-freq 0 \
