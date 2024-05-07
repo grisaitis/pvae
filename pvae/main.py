@@ -104,7 +104,7 @@ print('RunID:', runId)
 
 # Save args to run
 with open('{}/args.json'.format(runPath), 'w') as fp:
-    json.dump(args.__dict__, fp)
+    json.dump(args.__dict__, fp, indent=2, sort_keys=True)
 with open('{}/args.txt'.format(runPath), 'w') as fp:
     git_hash = subprocess.check_output(['git', 'rev-parse', '--verify', 'HEAD'])
     command = ' '.join(sys.argv[1:])
