@@ -22,4 +22,5 @@ docker \
     --enc Wrapped \
     --dec Geo \
     --prior RiemannianNormal \
-    --iwae-samples 5000
+    --iwae-samples 5000 \
+    --seed 42
