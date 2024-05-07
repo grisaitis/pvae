@@ -143,7 +143,7 @@ def train(epoch, agg):
 
 def test(epoch, agg):
     model.eval()
-    b_loss, b_mlik = 0., 0.
+    b_loss, b_mlik, b_recon, b_kl = 0., 0., 0., 0.
     with torch.no_grad():
         for i, (data, labels) in enumerate(test_loader):
             data = data.to(device)
@@ -155,11 +155,16 @@ def test(epoch, agg):
                 mlik = objectives.iwae_objective(model, data, K=1)
                 b_mlik += mlik.sum(-1).item()
             b_loss += loss.item()
+            b_recon += -lik.mean(0).sum().item()
+            b_kl += kl.sum(-1).mean(0).sum().item()
             if i == 0: model.reconstruct(data, runPath, epoch)
 
     agg['test_loss'].append(b_loss / len(test_loader.dataset))
     agg['test_mlik'].append(b_mlik / len(test_loader.dataset))
-    print('====>             Test loss: {:.4f} mlik: {:.4f}'.format(agg['test_loss'][-1], agg['test_mlik'][-1]))
+    agg['test_recon'].append(b_recon / len(test_loader.dataset))
+    agg['test_kl'].append(b_kl / len(test_loader.dataset))
+    print('====>             Test loss: {:.4f} mlik: {:.4f} recon: {:.4f} kl: {:.4f}'\
+        .format(agg['test_loss'][-1], agg['test_mlik'][-1], agg['test_recon'][-1], agg['test_kl'][-1]))
 
 
 def get_runtime_info() -> dict:
