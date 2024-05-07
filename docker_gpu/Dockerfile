@@ -1,5 +1,11 @@
 FROM pytorch/pytorch:1.3-cuda10.1-cudnn7-runtime
 
+RUN apt update \
+    && apt install -y git \
+    && apt autoremove -y \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install -U pip && \
     pip install scikit-learn==0.21.3 scipy==1.3.2 seaborn==0.9.0
 
