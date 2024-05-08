@@ -115,6 +115,7 @@ torch.save(args, '{}/args.rar'.format(runPath))
 modelC = getattr(models, 'VAE_{}'.format(args.model))
 model = modelC(args).to(device)
 optimizer = optim.Adam(model.parameters(), lr=args.lr, amsgrad=True, betas=(args.beta1, args.beta2))
+print("args.data_params:", args.data_params, type(args.data_params))
 train_loader, test_loader = model.getDataLoaders(args.batch_size, True, device, *args.data_params)
 loss_function = getattr(objectives, args.obj + '_objective')
 

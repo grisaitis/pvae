@@ -41,6 +41,19 @@ class SyntheticDataset(torch.utils.data.Dataset):
     :param int param: integer by which :math:`\\sigma_children` is divided at each deeper level of the tree
     '''
     def __init__(self, dim, depth, numberOfChildren=2, sigma_children=1, param=1, numberOfsiblings=1, factor_sibling=10):
+        print("SyntheticDataset arguments:")
+        import collections
+        args_dict = collections.OrderedDict(
+            dim=dim,
+            depth=depth,
+            numberOfChildren=numberOfChildren,
+            sigma_children=sigma_children,
+            param=param,
+            numberOfsiblings=numberOfsiblings,
+            factor_sibling=factor_sibling
+        )
+        import json
+        print(json.dumps(args_dict, indent=2))
         self.dim = int(dim)
         self.root = np.zeros(self.dim)
         self.depth = int(depth)
