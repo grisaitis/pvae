@@ -2,9 +2,11 @@ import json
 from pathlib import Path
 from pprint import pprint
 from typing import Dict, List
+import warnings
 
 import pandas as pd
 import torch
+import numpy as np
 
 
 class ExperimentOutput:
@@ -13,7 +15,6 @@ class ExperimentOutput:
         self.args = torch.load(self.path / "args.rar")  # returns argparse.Namespace
         self.args_json = json.load(open(self.path / "args.json"))
         # load python version used, pytorch, commit hash of this repo, and other runtime info
-        
 
     @classmethod
     def from_experiment_dir(cls, experiment_dir: str):
@@ -38,18 +39,13 @@ class ExperimentOutput:
         return True
 
     def get_epoch_durations(self) -> Dict[int, float]:
-        # start = timestamp of creation of self.path / "args.rar"
-        # end of each epoch = timestamp of "gen_means_{:03d}.png".format(epoch)
-        # end of experiment = timestamp of "run.log"
-        start_of_first_epoch = (self.path / "args.rar").stat().st_ctime
-        # fpr each "gen_means_*" file, get epoch number and timestamp
-        end_times = {
-            int(p.name.split("_")[2][:3]): p.stat().st_ctime
-            for p in self.path.glob("gen_means_*.png")
-        }
-        end_times[0] = start_of_first_epoch
-        durations = {i: end - end_times[i - 1] for i, end in end_times.items() if i > 0}
-        return durations
+        # parse run.log, extracting values
+        # lines with data look like "====>            Time: 0.47 s"
+        with open(self.path / "run.log") as f:
+            lines = f.readlines()
+        lines_with_time = filter(lambda x: "====>            Time: " in x, lines)
+        durations = map(lambda x: float(x.split(" ")[-2]), lines_with_time)
+        return list(durations)
 
     def _load_losses_rar(self) -> Dict[str, list]:
         # keep this method for type annotation
@@ -57,31 +53,42 @@ class ExperimentOutput:
 
     def get_loss_df(self) -> pd.DataFrame:
         losses = self._load_losses_rar()
+        # print length of all lists or arrays in losses, which is a dictionary
         args_to_include = {
-            k: v for k, v in vars(self.args).items() if not isinstance(v, (list, dict))
+            k: v for k, v in vars(self.args).items() if not isinstance(v, (list, dict)) or k == "data_size"
         }
-        df = pd.DataFrame(
-            {
-                "experiment_dir": self.path.name,
-                "started": self.started(),
-                "stopped": self.stopped(),
-                "complete": self.complete(),
-                "epoch": range(1, len(losses["train_loss"]) + 1),
-                "test_loss": losses["test_loss"],
-                "test_mlik": losses["test_mlik"],
-                "train_loss": losses["train_loss"],
-                "train_recon": losses["train_recon"],
-                "train_kl": losses["train_kl"],
-                **args_to_include,
-            }
-        )
+        args_to_include["data_size"] = args_to_include["data_size"][0]
+        for k in ["test_loss", "test_mlik", "test_recon", "test_kl"]:
+            if len(losses["train_loss"]) < args_to_include["epochs"]:
+                losses[k] = None
+            else:
+                losses[k] = losses[k][0]
+        epoch_range = list(range(1, len(losses["train_loss"]) + 1))
+        data = {
+            "experiment_dir": self.path.name,
+            "started": self.started(),
+            "stopped": self.stopped(),
+            "complete": self.complete(),
+            "epoch": epoch_range,
+            "test_loss": losses["test_loss"],
+            "test_mlik": losses["test_mlik"],
+            "test_recon": losses["test_recon"],
+            "test_kl": losses["test_kl"],
+            "train_loss": losses["train_loss"],
+            "train_recon": losses["train_recon"],
+            "train_kl": losses["train_kl"],
+            **args_to_include,
+        }
+        df = pd.DataFrame(data)
         for k in losses.keys():
             # replace extreme values with NaN
-            df[k] = df[k].apply(lambda x: x if 0 < x < 1e4 else None)
+            df[k] = df[k].apply(lambda x: x if x is not None and 0 < x < 1e4 else None)
         df["is_completion_epoch"] = df["epoch"] == df["epochs"]
         df["is_last_epoch"] = df["epoch"] == df["epoch"].max()
         epoch_durations = self.get_epoch_durations()
-        df["epoch_duration"] = df["epoch"].map(epoch_durations)
+        if len(epoch_durations) < len(df):
+            epoch_durations += [np.nan] * (len(df) - len(epoch_durations))
+        df["epoch_duration"] = epoch_durations
         df["epoch_duration_median"] = df["epoch_duration"].median()
         return df
 
@@ -133,6 +140,8 @@ def summarize_complete_experiments(results: pd.DataFrame) -> pd.DataFrame:
         "posterior",
         "c",
         "dec",
+        "data_size",
+        "batch_size",
         "epochs",
     ]
 
@@ -162,6 +171,8 @@ def summarize_started_experiments(results: pd.DataFrame) -> pd.DataFrame:
         "posterior",
         "c",
         "dec",
+        "data_size",
+        "batch_size",
         "stopped",
     ]
     aggs = {
@@ -174,6 +185,7 @@ def summarize_started_experiments(results: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    warnings.filterwarnings('ignore', message='Mean of empty slice')
     experiments = get_started_experiments(Path("experiments"))
     df_losses = combine_loss_dfs(experiments)
     starteds = get_last_losses(df_losses)
