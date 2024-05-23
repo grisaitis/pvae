@@ -209,6 +209,7 @@ if __name__ == '__main__':
             if args.save_freq == 0 or epoch % args.save_freq == 0:
                 if not args.skip_test: test(epoch, agg)
                 model.generate(runPath, epoch)
+                model.visualize_posterior_means(runPath, epoch, test_loader)
             save_model(model, runPath + '/model.rar')
             save_vars(agg, runPath + '/losses.rar')
             print("====>            Time: {:03.2f} s".format(time.time() - t))
