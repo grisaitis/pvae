@@ -1,11 +1,18 @@
 # Base VAE class definition
 
+import logging
 import math
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as dist
 from pvae.utils import get_mean_param
+from pvae.vis_other import plot_posterior_means_for_df
+
+logger = logging.getLogger(__name__)
+
 
 class VAE(nn.Module):
     def __init__(self, prior_dist, posterior_dist, likelihood_dist, enc, dec, params):
@@ -63,3 +70,49 @@ class VAE(nn.Module):
         return self._pz_mu.mul(1), F.softplus(self._pz_logvar).div(math.log(2)).mul(self.prior_std_scale)
 
     def init_last_layer_bias(self, dataset): pass
+
+    def map_class_labels_to_1d(self, class_labels: np.ndarray) -> np.ndarray:
+        assert class_labels.ndim == 1, class_labels.shape
+        return class_labels
+
+    def plot_posterior_means(self, data_loader, runPath, epoch):
+        self.eval()
+        model_device = next(self.parameters()).device
+        with torch.no_grad():
+            # for each batch in the data_loader, compute the posterior means
+            # and store the means and class labels in a DataFrame
+            posterior_means = []
+            class_labels = []
+            for i_batch, (data, labels) in enumerate(data_loader):
+                logger.debug("encoding batch %d", i_batch)
+                data = data.to(model_device)
+                pz_x_params = self.enc(data)
+                pz_x_means = get_mean_param(pz_x_params)
+                posterior_means.append(pz_x_means)
+                class_labels.append(labels)
+        means = torch.cat(posterior_means)
+        class_labels_tensor = torch.cat(class_labels)
+        try:
+            data_numpy = {
+                "z0": means[:, 0].numpy(),
+                "z1": means[:, 1].numpy(),
+                "class_label": class_labels_tensor.numpy()
+            }
+        except TypeError:
+            data_numpy = {
+                "z0": means[:, 0].cpu().numpy(),
+                "z1": means[:, 1].cpu().numpy(),
+                "class_label": class_labels_tensor.cpu().numpy()
+            }
+        data_numpy["class_label"] = self.map_class_labels_to_1d(data_numpy["class_label"])
+        data_numpy["class_label"] = data_numpy["class_label"].astype(str)
+        logger.debug("shape of z0, z1, class_label: %s, %s, %s", data_numpy["z0"].shape, data_numpy["z1"].shape, data_numpy["class_label"].shape)
+        df_means = pd.DataFrame(data_numpy)
+        if self.params.manifold == 'PoincareBall':
+            radius = self.params.c**-0.5
+            axis_range = [-(radius), radius]
+        else:
+            axis_range = [-5, 5]
+        fig = plot_posterior_means_for_df(df_means, axis_range)
+        filepath = "{}/posterior_means_{:03d}.png".format(runPath, epoch)
+        fig.write_image(filepath, scale=2)

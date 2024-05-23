@@ -128,25 +128,3 @@ class Mnist(VAE):
         recon = super(Mnist, self).reconstruct(data[:8])
         comp = torch.cat([data[:8], recon])
         save_image(comp.data.cpu(), "{}/recon_{:03d}.png".format(runPath, epoch))
-
-    def plot_posterior_means(self, data_loader, runPath, epoch):
-        # for each batch in the data_loader, compute the posterior means
-        # and store the means and class labels in a DataFrame
-        posterior_means = []
-        class_labels = []
-        for images, labels in data_loader:
-            posterior_means.append(self.enc(images))
-            class_labels.append(labels)
-        means = torch.cat(posterior_means)
-        class_labels = torch.cat(class_labels)
-        df_means = pd.DataFrame(
-            {
-                "z0": means[:, 0].numpy(),
-                "z1": means[:, 1].numpy(),
-                "class_label": class_labels.numpy(),
-            }
-        )
-        axis_range = [-(self.c**-0.5), self.c**-0.5]
-        fig = plot_posterior_means_for_df(df_means, axis_range)
-        filepath = "{}/posterior_means_{:03d}.png".format(runPath, epoch)
-        fig.write_image(filepath, scale=2)

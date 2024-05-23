@@ -1,12 +1,14 @@
 from pathlib import Path
 from typing import Tuple
+
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import torch
 
 
-def plot_posterior_means_for_df(df_means: pd.DataFrame, axis_range):
-    fig = px.Scatter(
+def plot_posterior_means_for_df(df_means: pd.DataFrame, axis_range) -> go.Figure:
+    fig = px.scatter(
         df_means,
         x="z0",
         y="z1",

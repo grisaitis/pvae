@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -62,6 +63,13 @@ class Tree(Tabular):
         train_loader = DataLoader(train_dataset, batch_size=batch_size, drop_last=True, shuffle=shuffle, **kwargs)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, drop_last=True, shuffle=False, **kwargs)
         return train_loader, test_loader
+
+    def map_class_labels_to_1d(self, class_labels: np.ndarray):
+        # shape is like (n, k)
+        # map the one-hot encodings to a single integer
+        res = class_labels.argmax(axis=1)
+        assert res.shape == (class_labels.shape[0],), res.shape
+        return res
 
 
 class CSV(Tabular):
