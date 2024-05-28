@@ -14,6 +14,7 @@ def plot_posterior_means_for_df(df_means: pd.DataFrame, axis_range) -> go.Figure
         y="z1",
         color="class_label",
         title="Posterior Means",
+        category_orders={"class_label": sorted(df_means["class_label"].unique())},
     )
     fig.update_traces(marker=dict(size=5))
     fig.update_layout(
