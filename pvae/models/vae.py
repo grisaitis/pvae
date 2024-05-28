@@ -2,6 +2,7 @@
 
 import logging
 import math
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
@@ -115,4 +116,5 @@ class VAE(nn.Module):
             axis_range = [-5, 5]
         fig = plot_posterior_means_for_df(df_means, axis_range)
         filepath = "{}/posterior_means_{:03d}.png".format(runPath, epoch)
+        logger.debug("writing posterior means plot to %s", Path(filepath).resolve())
         fig.write_image(filepath, scale=2)
