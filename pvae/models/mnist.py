@@ -32,6 +32,13 @@ from .architectures import (
 
 data_size = torch.Size([1, 28, 28])
 
+datasets.MNIST.urls = [
+    'https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
+    'https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz',
+    'https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz',
+    'https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz',
+]
+
 
 class Mnist(VAE):
     def __init__(self, params):
