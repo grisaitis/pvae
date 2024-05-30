@@ -32,7 +32,12 @@ parser.add_argument('--no-cuda', action='store_true', default=False, help='disab
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level="DEBUG", format="%(asctime)s %(name)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level="DEBUG",
+        # format="%(asctime)s %(name)s %(levelname)s %(message)s",
+        format='%(asctime)s %(levelname)s:%(module)s:%(funcName)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
 
     logger.debug("Parsing arguments")
     args = parser.parse_args()

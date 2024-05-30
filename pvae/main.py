@@ -1,3 +1,4 @@
+import logging
 import sys
 sys.path.append(".")
 sys.path.append("..")
@@ -19,6 +20,8 @@ import models
 
 runId = datetime.datetime.now().isoformat().replace(':','_')
 torch.backends.cudnn.benchmark = True
+
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 
@@ -194,9 +197,17 @@ def get_runtime_info() -> dict:
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level="DEBUG",
+        # format="%(asctime)s %(name)s %(levelname)s %(message)s",
+        format='%(asctime)s %(levelname)s:%(module)s:%(funcName)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
+
     with open('{}/runtime_info.json'.format(runPath), 'w') as fp:
         json.dump(get_runtime_info(), fp, indent=2, sort_keys=True)
 
+    logger.debug("Starting training...")
     with Timer('ME-VAE') as t:
         agg = defaultdict(list)
         print('Starting training...')
@@ -209,7 +220,6 @@ if __name__ == '__main__':
             if args.save_freq == 0 or epoch % args.save_freq == 0:
                 if not args.skip_test: test(epoch, agg)
                 model.generate(runPath, epoch)
-                model.visualize_posterior_means(runPath, epoch, test_loader)
             save_model(model, runPath + '/model.rar')
             save_vars(agg, runPath + '/losses.rar')
             print("====>            Time: {:03.2f} s".format(time.time() - t))

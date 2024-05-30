@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import torch
 import torch.nn as nn
@@ -15,6 +16,8 @@ from torch.distributions import Normal
 from pvae import manifolds
 from .architectures import EncLinear, DecLinear, EncWrapped, DecWrapped, EncMob, DecMob, DecGeo
 from pvae.datasets import SyntheticDataset, CSVDataset
+
+logger = logging.getLogger(__name__)
 
 
 class Tabular(VAE):
@@ -56,9 +59,12 @@ class Tree(Tabular):
 
     def getDataLoaders(self, batch_size, shuffle, device, *args):
         kwargs = {'num_workers': 1, 'pin_memory': True} if device == "cuda" else {}
+        logger.info("Load training data with data_size %s", self.data_size)
         print('Load training data...')
         dataset = SyntheticDataset(*self.data_size, *map(lambda x: float(x), args))
+        logger.debug("Dataset size: %d", len(dataset))
         n_train, n_test = _validate_shuffle_split(len(dataset), test_size=None, train_size=0.7)
+        logger.debug("Train size: %d, Test size: %d", n_train, n_test)
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, [n_train, n_test])
         train_loader = DataLoader(train_dataset, batch_size=batch_size, drop_last=True, shuffle=shuffle, **kwargs)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, drop_last=True, shuffle=False, **kwargs)
