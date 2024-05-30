@@ -1,5 +1,6 @@
 import logging
 import sys
+
 sys.path.append(".")
 sys.path.append("..")
 import os
@@ -10,6 +11,8 @@ from tempfile import mkdtemp
 from collections import defaultdict
 import subprocess
 import math
+from pathlib import Path
+
 import torch
 from torch import optim
 import numpy as np
@@ -17,6 +20,8 @@ import numpy as np
 from utils import Logger, Timer, save_model, save_vars, probe_infnan
 import objectives
 import models
+from models.utils import load_model
+
 
 logger = logging.getLogger(__name__)
 
@@ -45,25 +50,17 @@ if __name__ == '__main__':
     device = torch.device("cuda" if args.cuda else "cpu")
     logger.debug("Device: %s", device)
 
-    # load args, update some
-    run_path_args_json = args.run_path + '/args.json'
-    logger.debug("Loading args from %s", run_path_args_json)
-    with open(run_path_args_json, 'r') as f:
-        run_path_args_dict = json.load(f)
-    run_path_args = argparse.Namespace(**run_path_args_dict)
-    run_path_args.cuda = args.cuda
-
     # Initialise model, dataset loader
     logger.debug("Initialising model")
-    modelC = getattr(models, 'VAE_{}'.format(run_path_args.model))
-    model = modelC(run_path_args).to(device)
-    train_loader, test_loader = model.getDataLoaders(run_path_args.batch_size, True, device, *run_path_args.data_params)
-    
-    model_state_path = args.run_path + '/model.rar'
-    with open(model_state_path, 'rb') as f:
-        model_state_dict = torch.load(f)
-    model.load_state_dict(model_state_dict)
-    model.eval()
-    # print(model)
-    # print(model.__dict__.keys())
-    model.plot_posterior_means(test_loader, args.run_path, epoch=0)
+    model = load_model(args.run_path, device)
+    if model.params.model == "tree":
+        logger.debug("Loading tree model dataloaders")
+        train_loader = torch.load(args.run_path + '/dataloader_train.pt')
+        test_loader = torch.load(args.run_path + '/dataloader_test.pt')
+    else:
+        train_loader, test_loader = model.getDataLoaders(model.params.batch_size, True, device, *model.params.data_params)
+    fig = model.plot_posterior_means(test_loader)
+    filepath = "{}/posthoc_model_test_posterior_means.png".format(args.run_path)
+    logger.debug("writing posterior means plot...")
+    fig.write_image(filepath, scale=2)
+    logger.debug("saved image to %s", Path(filepath).resolve())

@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import sys
 sys.path.append(".")
 sys.path.append("..")
@@ -144,6 +145,14 @@ def train(epoch, agg):
     if epoch % 1 == 0:
         print('====> Epoch: {:03d} Loss: {:.2f} Recon: {:.2f} KL: {:.2f}'.format(epoch, agg['train_loss'][-1], agg['train_recon'][-1], agg['train_kl'][-1]))
 
+    if epoch == args.epochs or math.log2(epoch).is_integer():
+        logger.debug("calling plot_posterior_means...")
+        fig = model.plot_posterior_means(test_loader)
+        filepath = "{}/model_train_posterior_means_epoch={:04d}.png".format(runPath, epoch)
+        logger.debug("writing posterior means plot...")
+        fig.write_image(filepath, scale=2)
+        logger.debug("saved image to %s", Path(filepath).resolve())
+
 
 def test(epoch, agg):
     model.eval()
@@ -169,6 +178,13 @@ def test(epoch, agg):
     agg['test_kl'].append(b_kl / len(test_loader.dataset))
     print('====>             Test loss: {:.4f} mlik: {:.4f} recon: {:.4f} kl: {:.4f}'\
         .format(agg['test_loss'][-1], agg['test_mlik'][-1], agg['test_recon'][-1], agg['test_kl'][-1]))
+
+    logger.debug("calling plot_posterior_means...")
+    fig = model.plot_posterior_means(test_loader)
+    filepath = "{}/model_test_posterior_means.png".format(runPath)
+    logger.debug("writing posterior means plot...")
+    fig.write_image(filepath, scale=2)
+    logger.debug("saved image to %s", Path(filepath).resolve())
 
 
 def get_runtime_info() -> dict:
@@ -206,6 +222,11 @@ if __name__ == '__main__':
 
     with open('{}/runtime_info.json'.format(runPath), 'w') as fp:
         json.dump(get_runtime_info(), fp, indent=2, sort_keys=True)
+
+    if args.model == "tree":
+        logger.debug("Saving dataloaders...")
+        torch.save(train_loader, runPath + "/dataloader_train.pt")
+        torch.save(test_loader, runPath + "/dataloader_test.pt")
 
     logger.debug("Starting training...")
     with Timer('ME-VAE') as t:

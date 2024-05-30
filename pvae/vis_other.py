@@ -1,10 +1,6 @@
-from pathlib import Path
-from typing import Tuple
-
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import torch
 
 
 def plot_posterior_means_for_df(df_means: pd.DataFrame, axis_range) -> go.Figure:
@@ -22,5 +18,7 @@ def plot_posterior_means_for_df(df_means: pd.DataFrame, axis_range) -> go.Figure
         yaxis_title="z1",
         xaxis_range=axis_range,
         yaxis_range=axis_range,
+        width=800,
+        height=800,
     )
     return fig

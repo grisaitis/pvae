@@ -2,13 +2,15 @@
 
 import logging
 import math
-from pathlib import Path
+
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as dist
+
 from pvae.utils import get_mean_param
 from pvae.vis_other import plot_posterior_means_for_df
 
@@ -76,7 +78,7 @@ class VAE(nn.Module):
         assert class_labels.ndim == 1, class_labels.shape
         return class_labels
 
-    def plot_posterior_means(self, data_loader, runPath, epoch):
+    def plot_posterior_means(self, data_loader: torch.utils.data.DataLoader) -> go.Figure:
         self.eval()
         model_device = next(self.parameters()).device
         with torch.no_grad():
@@ -115,6 +117,4 @@ class VAE(nn.Module):
         else:
             axis_range = [-5, 5]
         fig = plot_posterior_means_for_df(df_means, axis_range)
-        filepath = "{}/posterior_means_{:03d}.png".format(runPath, epoch)
-        logger.debug("writing posterior means plot to %s", Path(filepath).resolve())
-        fig.write_image(filepath, scale=2)
+        return fig
