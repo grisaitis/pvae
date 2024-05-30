@@ -73,7 +73,9 @@ class Tree(Tabular):
     def map_class_labels_to_1d(self, class_labels: np.ndarray):
         # shape is like (n, k)
         # map the one-hot encodings to a single integer
-        res = class_labels.argmax(axis=1)
+        # res = class_labels.argmax(axis=1)
+        # map each row of class_labels to a string
+        res = np.array(['-'.join([str(int(i)) for i in row[:3] if i > 0]) for row in class_labels])
         assert res.shape == (class_labels.shape[0],), res.shape
         return res
 
