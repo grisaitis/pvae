@@ -1,0 +1,179 @@
+vi parse.sh
+chmod a+x parse
+chmod a+x parse.sh 
+mv parse.sh parse_results.sh
+cat run_synthetic_hyperbolic_riemannian_wrapped.sh 
+vi parse_results.sh 
+./parse_results.sh 
+docker rm 0d1b02c945c14d4c9f4a034dc7fc4aa9fe5b3355b7a0c5677844ad4ed6bc3763
+pip install scikit-learn==0.21.3 scipy==1.3.2 seaborn==0.9.0
+conda
+conda env create python=3.7
+conda create -n py37 python=3.7
+conda activate py37 
+pip install --upgrade pip
+pip install ruff ipython tensorboard torch-tb-profiler pytest
+pip install -r requirements.txt 
+pip install -e .
+docker ps
+docker ps -a
+docker logs 17f1f4eeb0d9 | less
+docker logs 656bff6bbda5 | less
+vi run_synthetic_hyperbolic_riemannian_wrapped.sh 
+./run_synthetic_hyperbolic_riemannian_wrapped.sh 
+watch -n 0.1. nvidia-smi
+watch -n 0.1 nvidia-smi
+python
+nvidia-smi
+cd pvae/
+docker kill ce063ce905b6
+git s
+git a parse_results.py 
+git d --cached
+cd pvae
+git d parse_results.
+git d parse_results.py
+git config --global user.name "William Grisaitis"
+git config --global user.email "wgrisaitis@gmail.com"
+sudo /opt/deeplearning/install-driver.sh
+cat /var/log/nvidia-installer.log
+less /var/log/nvidia-installer.log
+cp /var/log/nvidia-installer.log nvidia-installer-1.log
+ls
+less driver_installer.run 
+./driver_installer.run --help
+ls -
+./driver_installer.run --advanced-options
+less nvidia-installer-1.log 
+./driver_installer.run --no-dkms
+sudo ./driver_installer.run --no-dkms
+sudo /opt/deeplearning/install-driver.sh --help
+uname -r
+less ./driver_installer.run
+ls -la
+less /opt/deeplearning/install-driver.sh
+sudo ./driver_installer.run --no-dkms -a -s --no-drm --install-libglvnd ''
+cat /etc/*-release
+dpkg --list | grep linux-image
+ls -l /lib/modules
+ls -la /etc/default/grub
+cat /etc/default/grub
+lsb_release -i -s
+apt list -i linux-image* linux-headers*
+sudo update-grub
+sudo apt remove linux-headers-5.10.0-29-cloud-amd64
+sudo apt remove linux-headers-5.10.0-29-common
+sudo apt remove linux-image-5.10.0-29-cloud-amd64
+sudo apt install -y linux-headers-5.10.0-29-common
+sudo apt install -y linux-headers-5.10.0-29-cloud-amd64
+grub2-set-default --help
+vi /etc/default/grub
+info -f grub -n 'Simple configuration'
+cat /boot/grub/grub.cfg
+less /boot/grub/grub.cfg
+sudo vi /etc/default/grub
+sudo grub-mkconfig
+sudo grub-mkconfig | less
+ubuntu:~$ sudo grub-mkconfig | grep -iE "menuentry 'Debian" | awk '{print i++ " : "$1, $2, $3, $4, $5, $6, $7}'
+sudo grub-mkconfig | grep -iE "menuentry 'Debian" | awk '{print i++ " : "$1, $2, $3, $4, $5, $6, $7}'
+sudo poweroff
+grub-set-default --help
+sudo efibootmgr
+grub-set-default
+less /boot/grub/menu.lst 
+sudo apt-get install wget gpg -y
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" |sudo tee /etc/apt/sources.list.d/vscode.list > /dev/null
+rm -f packages.microsoft.gpg
+sudo apt install apt-transport-https -y
+sudo apt update
+sudo apt install code -y
+code tunnel service install
+sudo loginctl enable-linger $USER
+conda create -n py37 python=3.7 -y
+conda activate py37
+pip install -U pip
+pip install -r requirements.txt
+pip install -e --no-dep . 
+pip install -e --no-deps . 
+pip install -e . --no-deps
+./run_mnist_euclidean.sh 
+./docker_gpu/build_docker.sh 
+docker run --rm nvidia/cuda:11.3.1-devel-ubuntu20.04 nvcc --version
+/bin/python3 /home/jupyter/.vscode-server/extensions/ms-python.python-2024.6.0/python_files/printEnvVariablesToFile.py /home/jupyter/.vscode-server/extensions/ms-python.python-2024.6.0/python_files/deactivate/bash/envVars.txt
+docker logs -f 26a28d823a156c92bb77c4f1bf464b361214e0b440aa37f093611b060efc67a2
+git c -m "add plotly, pandas"
+git c -m "add function for visualizing posterior means of test loader each epoch"
+git c -m "don't format on save"
+ipython
+conda remove -n py37
+conda env remove -n py37
+conda deactivate
+conda env remove -n py37 -y
+./save_visualizations.sh 
+which pip
+git log -2
+git show HEAD
+git push --force
+git a requirements.txt 
+git c -m "add kaleido dependency"
+git push
+gh --help
+github --help
+sudo apt install gh -y
+(type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) && sudo mkdir -p -m 755 /etc/apt/keyrings && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh -y
+gh auth
+gh auth login
+gcloud storage ls --recursive gs://liulab/**
+gcloud storage ls --recursive gs://liulab/*
+gcloud storage ls --recursive gs://liulab/
+gcloud storage ls gs://liulab/
+gcloud storage ls gs://liulab/hyperbolic-vae
+gcloud storage ls gs://liulab/hyperbolic-vae/checkpoints
+gcloud storage ls gs://liulab/pvae/
+gcloud storage ls gs://liulab/pvae/experiments
+gsutil -m rsync -r gs://liulab/pvae/experiments/ ./experiments/
+gsutil -m rsync -r ./experiments/ gs://liulab/pvae/experiments/
+./run_synthetic_euclidean.sh 
+./find_tree_figs.sh 
+systemctl status docker
+cat /etc/docker/daemon.json
+sudo vi /etc/systemd/system/docker_limit.slice
+htop
+sudo vi /etc/docker/daemon.json
+sudo systemctl restart code
+sudo systemctl restart code-tunnel
+code service install
+systemctl status code-tunnel
+code --version
+code tunnel service log
+docker logs -f f335e8b8ec1fd57d42460c564bc12da1ecf5528e2b0d7ca19ade82dfe9feab88
+find experiments/ -type f -name "model_test_posterior_means.png" -exec rename 's/model_test_posterior_means/model_posttraining_test_posterior_means/' {} +
+find experiments/ -type f -name "model_test_posterior_means.png" -exec sh -c '
+  for file; do
+    mv "$file" "$(dirname "$file")/model_posttraining_test_posterior_means.png"
+  done
+' sh {} +
+ls experiments/2024-05-15T19_56_32.333185i2m0u_30
+ls experiments/2024-05-15T19_56_32.333185i2m0u_3o
+gsutil -m rsync -dr ./experiments/ gs://liulab/pvae/experiments/
+find experiments/ -type f -name "model_posttraining_test_posterior_means.png" -exec sh -c '
+    mv "$file" "$(dirname "$file")/posthoc_model_test_posterior_means.png"
+docker logs -f ce779abed9b57d953a5896df8ad6414c8936cbba382d7da2e9e02c667f285dea
+docker logs -f e4cc4683f49dd8f083f95d6767837a7d635936ac752c59553f85496981f2f81f
+cd pvae/experiments/
+find . -name "*postho*"
+python pvae/inspect_synthetic.py 
+ls -la /home/jupyter/pvae/experiments/2024-05-29T19_39_30.1820548gbo9bj4/model.rar
+docker logs -f b4653076d5e1cd187647ed157a0e4b88562d98d37ac01fc7be794b438ee0fe89
+docker logs -f 4ced70e9d6f3cbb34120500332b9ce00dbce5896a99e2ee36094ac35d1cbdf15
+docker kill 68372d9835b35494f44a868a6f0ed6f7b6fd32377edd8cbcc58db7121f1e9f7c
+docker logs -f 77bb54be756197283e13f894385d7e902b594e685aeac3f7fe702e23eb6bffc2
+./find_bad_images.sh 
+rm -r experiments/2024-05-29T19_36_14.63699368glxib4
+rm -r experiments/2024-05-29T19_39_30.1820548gbo9bj4
+sudo apt-get install jq  -y
+find experiments/ -name "args.json" -exec sh -c 'jq --sort-keys . "$0" | jq . -M > "$(dirname "$0")/args_formatted.json"' {} \;
+history | cut -c 8- | awk '!seen[$0]++' > history_export.txt
+./backup_history.sh 
