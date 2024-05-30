@@ -1,4 +1,6 @@
+import argparse
 import json
+import logging
 from pathlib import Path
 from pprint import pprint
 from typing import Dict, List
@@ -7,6 +9,9 @@ import warnings
 import pandas as pd
 import torch
 import numpy as np
+import torch.jit
+
+logger = logging.getLogger(__name__)
 
 
 class ExperimentOutput:
@@ -14,6 +19,11 @@ class ExperimentOutput:
         self.path = path
         self.args = torch.load(self.path / "args.rar")  # returns argparse.Namespace
         self.args_json = json.load(open(self.path / "args.json"))
+        # try:
+        #     self.args = argparse.Namespace(**self.args_json)
+        # except RuntimeError:
+        #     self.args = argparse.Namespace(**self.args_json)
+        assert type(self.args) is argparse.Namespace
         # load python version used, pytorch, commit hash of this repo, and other runtime info
 
     @classmethod
@@ -49,6 +59,7 @@ class ExperimentOutput:
 
     def _load_losses_rar(self) -> Dict[str, list]:
         # keep this method for type annotation
+        logger.debug("Loading losses from %s", self.path)
         return torch.load(self.path / "losses.rar")
 
     def get_loss_df(self) -> pd.DataFrame:
@@ -57,12 +68,29 @@ class ExperimentOutput:
         args_to_include = {
             k: v for k, v in vars(self.args).items() if not isinstance(v, (list, dict)) or k == "data_size"
         }
-        args_to_include["data_size"] = args_to_include["data_size"][0]
+        nan_value = np.nan
+        # try:
+        #     args_to_include["data_size"] = args_to_include["data_size"][0]
+        # except IndexError:
+        #     logger.warning("data_size (%s) was empty, so setting to %s", args_to_include["data_size"], str(nan_value))
+        #     args_to_include["data_size"] = nan_value
+        args_to_include["data_size"] = str(args_to_include["data_size"])
+        n_train_losses = len(losses["train_loss"])
         for k in ["test_loss", "test_mlik", "test_recon", "test_kl"]:
-            if len(losses["train_loss"]) < args_to_include["epochs"]:
-                losses[k] = None
+            if k not in losses:
+                losses[k] = [nan_value] * n_train_losses
+            elif isinstance(losses[k], list):
+                if len(losses[k]) == 0:
+                    losses[k] = [nan_value] * n_train_losses
+                elif len(losses[k]) == 1:
+                    assert isinstance(losses[k][0], (int, float)), losses[k]
+                    losses[k] = losses[k] * n_train_losses
+                elif len(losses[k]) == n_train_losses:
+                    pass
+                else:
+                    raise ValueError("Unexpected length of losses[k]: %d", len(losses[k]))
             else:
-                losses[k] = losses[k][0]
+                raise ValueError("Unexpected type of losses[k]: %s", type(losses[k]))
         epoch_range = list(range(1, len(losses["train_loss"]) + 1))
         data = {
             "experiment_dir": self.path.name,
@@ -79,7 +107,17 @@ class ExperimentOutput:
             "train_kl": losses["train_kl"],
             **args_to_include,
         }
-        df = pd.DataFrame(data)
+        try:
+            df = pd.DataFrame(data)
+        except ValueError:
+            for k, x in data.items():
+                if isinstance(x, list):
+                    logger.debug("data[%s] length: %d", k, len(x))
+                else:
+                    # logger.debug("data[%s], not a list: %s", k, str(x))
+                    pass
+            logger.debug("data array lengths: \n%s", json.dumps({k: len(x) for k, x in data.items()}, indent=2, sort_keys=True))
+            raise
         for k in losses.keys():
             # replace extreme values with NaN
             df[k] = df[k].apply(lambda x: x if x is not None and 0 < x < 1e4 else None)
@@ -102,7 +140,7 @@ def get_started_experiments(path: Path) -> List[ExperimentOutput]:
             e = ExperimentOutput(p)
             if e.started():
                 experiments.append(e)
-        except FileNotFoundError:
+        except (FileNotFoundError, RuntimeError):
             continue
     return experiments
 
@@ -136,6 +174,7 @@ def get_last_losses(results: pd.DataFrame) -> pd.DataFrame:
 def summarize_complete_experiments(results: pd.DataFrame) -> pd.DataFrame:
     results = results[results["is_completion_epoch"]]
     groupbys = [
+        "model",
         "manifold",
         "posterior",
         "c",
@@ -156,17 +195,19 @@ def summarize_complete_experiments(results: pd.DataFrame) -> pd.DataFrame:
 
     aggs = {
         # "test_loss": ["count", "mean", "std"],
-        "test_mlik": [mean_pom_95ci, "median"],
+        "test_mlik": [mean_pom_95ci],
         # "train_loss": ["count", "mean", "std"],
         # "train_recon": ["count", "mean", "std", mean_pom_95ci],
         # "train_kl": ["count", "mean", "std"],
         "epoch_duration_median": ["mean"],
     }
-    return results.groupby(groupbys).agg(aggs)
+    dfg = results.groupby(groupbys)
+    return dfg.agg(aggs)
 
 
 def summarize_started_experiments(results: pd.DataFrame) -> pd.DataFrame:
     groupbys = [
+        "model",
         "manifold",
         "posterior",
         "c",
@@ -185,6 +226,12 @@ def summarize_started_experiments(results: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level="DEBUG",
+        # format="%(asctime)s %(name)s %(levelname)s %(message)s",
+        format='%(asctime)s %(levelname)s:%(module)s:%(funcName)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
     warnings.filterwarnings('ignore', message='Mean of empty slice')
     experiments = get_started_experiments(Path("experiments"))
     df_losses = combine_loss_dfs(experiments)
