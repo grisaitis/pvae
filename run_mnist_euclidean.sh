@@ -4,8 +4,8 @@ docker \
     run \
     --rm \
     --gpus all \
-    -v $(pwd):/workspaces/pvae \
-    -w /workspaces/pvae \
+    -v $(pwd):$(pwd) \
+    -w $(pwd) \
     -u $(id -u):$(id -g) \
     pvae:1.3-cuda10.1-cudnn7-runtime \
     python -u pvae/main.py \

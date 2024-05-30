@@ -4,8 +4,8 @@ docker \
     run \
     --gpus all \
     -d \
-    -v $(pwd):/workspaces/pvae \
-    -w /workspaces/pvae \
+    -v $(pwd):$(pwd) \
+    -w $(pwd) \
     -u $(id -u):$(id -g) \
     pvae \
     python -u pvae/main.py \

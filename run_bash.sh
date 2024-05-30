@@ -5,7 +5,7 @@ docker \
     --rm \
     --gpus all \
     -it \
-    -v $(pwd):/workspaces/pvae \
-    -w /workspaces/pvae \
+    -v $(pwd):$(pwd) \
+    -w $(pwd) \
     pvae \
     bash
