@@ -10,16 +10,17 @@ docker \
     pvae:1.3-cuda10.1-cudnn7-runtime \
     python -u pvae/main.py \
     --model tree \
-    --manifold Euclidean \
+    --manifold PoincareBall \
     --latent-dim 2 \
     --hidden-dim 200 \
     --prior-std 1.7 \
+    --c 1.2 \
     --data-size 50 \
     --data-params 6 2 1 1 5 5 \
-    --dec Linear \
-    --enc Linear \
-    --prior Normal \
-    --posterior Normal \
+    --dec Geo \
+    --enc Wrapped \
+    --prior WrappedNormal \
+    --posterior WrappedNormal \
     --epochs 1000 \
     --save-freq 1000 \
     --lr 1e-3 \

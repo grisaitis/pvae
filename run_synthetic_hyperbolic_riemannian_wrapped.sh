@@ -15,7 +15,7 @@ docker \
     --hidden-dim 200 \
     --prior-std 1.7 \
     --c 1.2 \
-    --data-size 50 \
+    --data-size 64 \
     --data-params 6 2 1 1 5 5 \
     --dec Wrapped \
     --enc Wrapped \
