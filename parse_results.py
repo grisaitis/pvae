@@ -121,6 +121,7 @@ class ExperimentOutput:
         for k in losses.keys():
             # replace extreme values with NaN
             df[k] = df[k].apply(lambda x: x if x is not None and 0 < x < 1e4 else None)
+        df[list(losses.keys())] = df[list(losses.keys())].astype(float)
         df["is_completion_epoch"] = df["epoch"] == df["epochs"]
         df["is_last_epoch"] = df["epoch"] == df["epoch"].max()
         epoch_durations = self.get_epoch_durations()
