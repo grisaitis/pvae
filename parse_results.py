@@ -161,13 +161,18 @@ def get_last_losses(results: pd.DataFrame) -> pd.DataFrame:
         "posterior",
         "dec",
         "epochs",
-        "started",
+        # "started",
         "stopped",
-        "complete",
+        # "complete",
         "epoch",
         "train_loss",
+        "train_recon",
+        "train_kl",
         "test_loss",
-        "epoch_duration_median",
+        "test_recon",
+        "test_kl",
+        "test_mlik",
+        # "epoch_duration_median",
     ]
     return df[cols]
 
@@ -176,13 +181,17 @@ def summarize_complete_experiments(results: pd.DataFrame) -> pd.DataFrame:
     results = results[results["is_completion_epoch"]]
     groupbys = [
         "model",
+        "data_size",
         "manifold",
         "posterior",
         "c",
         "dec",
-        "data_size",
-        "batch_size",
-        "epochs",
+        "hidden_dim",
+        "prior_std",
+        "enc",
+        "dec",
+        # "batch_size",
+        # "epochs",
     ]
 
     def std_pop(x):
@@ -195,15 +204,22 @@ def summarize_complete_experiments(results: pd.DataFrame) -> pd.DataFrame:
         return "{:.1f}±{:.1f} (n={})".format(mean, ci, n)
 
     aggs = {
-        # "test_loss": ["count", "mean", "std"],
-        "test_mlik": [mean_pom_95ci],
-        # "train_loss": ["count", "mean", "std"],
-        # "train_recon": ["count", "mean", "std", mean_pom_95ci],
+        "train_loss": [mean_pom_95ci],
+        "train_recon": [mean_pom_95ci],
+        "train_kl": [mean_pom_95ci],
+        "test_loss": ["median", mean_pom_95ci],
+        "test_mlik": ["median", mean_pom_95ci],
+        "test_recon": ["median", mean_pom_95ci],
         # "train_kl": ["count", "mean", "std"],
-        "epoch_duration_median": ["mean"],
+        # "epoch_duration_median": ["mean"],
     }
     dfg = results.groupby(groupbys)
-    return dfg.agg(aggs)
+    try:
+        aggregations = dfg.agg(aggs)
+    except pd.core.base.DataError:
+        print(dfg[list(aggs.keys())].dtypes)
+        raise
+    return aggregations
 
 
 def summarize_started_experiments(results: pd.DataFrame) -> pd.DataFrame:
@@ -235,11 +251,15 @@ if __name__ == "__main__":
     )
     warnings.filterwarnings('ignore', message='Mean of empty slice')
     experiments = get_started_experiments(Path("experiments"))
+    experiments = filter(lambda x: "2024-05-31T1" in str(x.path), experiments)
+    # experiments = filter(lambda x: x.args.model == "tree", experiments)
+    # experiments = filter(lambda x: x.args.batch_size == 64, experiments)
+    # experiments = filter(lambda x: x.args.data_size == [50], experiments)
     df_losses = combine_loss_dfs(experiments)
-    starteds = get_last_losses(df_losses)
-    pprint(starteds)
+    # starteds = get_last_losses(df_losses)
+    # pprint(starteds.tail(10))
     pprint(summarize_complete_experiments(df_losses))
-    pprint(summarize_started_experiments(df_losses))
+    # pprint(summarize_started_experiments(df_losses))
     # exper = ExperimentOutput.from_experiment_dir("2024-04-05T03_36_55.158096bvwyfqlm")
     # pprint(exper.make_loss_df())
     # pprint(exper.get_epoch_durations())
