@@ -9,7 +9,15 @@ def vae_objective(model, x, K=1, beta=1.0, components=False, analytical_kl=False
     qz_x, px_z, zs = model(x, K)
     _, B, D = zs.size()
     flat_rest = torch.Size([*px_z.batch_shape[:2], -1])
-    lpx_z = px_z.log_prob(x.expand(px_z.batch_shape)).view(flat_rest).sum(-1)
+    x_expanded = x.expand(px_z.batch_shape)
+    try:
+        x_log_probs = px_z.log_prob(x_expanded)
+    except RuntimeError:
+        print("x.shape", x.shape, flush=True)
+        print("x_expanded.shape", x_expanded.shape, flush=True)
+        print("flat_rest", flat_rest, flush=True)
+        print("px_z.batch_shape", px_z.batch_shape, flush=True)
+    lpx_z = x_log_probs.view(flat_rest).sum(-1)
 
     pz = model.pz(*model.pz_params)
     kld = dist.kl_divergence(qz_x, pz).unsqueeze(0).sum(-1) if \

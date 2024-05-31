@@ -8,6 +8,8 @@ from torch.utils.data import DataLoader
 
 import math
 from sklearn.model_selection._split import _validate_shuffle_split
+
+from pvae.utils import get_mean_param
 from .vae import VAE
 from pvae.vis import array_plot
 
@@ -15,7 +17,7 @@ from pvae.distributions import RiemannianNormal, WrappedNormal
 from torch.distributions import Normal
 from pvae import manifolds
 from .architectures import EncLinear, DecLinear, EncWrapped, DecWrapped, EncMob, DecMob, DecGeo
-from pvae.datasets import SyntheticDataset, CSVDataset
+from pvae.datasets import SyntheticDataset, CSVDataset, JerbyArnonDataset
 
 logger = logging.getLogger(__name__)
 
@@ -58,17 +60,25 @@ class Tree(Tabular):
         super(Tree, self).__init__(params)
 
     def getDataLoaders(self, batch_size, shuffle, device, *args):
+        dataset = self._create_dataset(args)
+        train_loader, test_loader = self._create_dataloaders(batch_size, shuffle, device, dataset)
+        return train_loader, test_loader
+
+    def _create_dataloaders(self, batch_size, shuffle, device, dataset):
         kwargs = {'num_workers': 1, 'pin_memory': True} if device == "cuda" else {}
-        logger.info("Load training data with data_size %s", self.data_size)
-        print('Load training data...')
-        dataset = SyntheticDataset(*self.data_size, *map(lambda x: float(x), args))
-        logger.debug("Dataset size: %d", len(dataset))
         n_train, n_test = _validate_shuffle_split(len(dataset), test_size=None, train_size=0.7)
         logger.debug("Train size: %d, Test size: %d", n_train, n_test)
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, [n_train, n_test])
         train_loader = DataLoader(train_dataset, batch_size=batch_size, drop_last=True, shuffle=shuffle, **kwargs)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, drop_last=True, shuffle=False, **kwargs)
-        return train_loader, test_loader
+        return train_loader,test_loader
+
+    def _create_dataset(self, args):
+        logger.info("Load training data with data_size %s", self.data_size)
+        print('Load training data...')
+        dataset = SyntheticDataset(*self.data_size, *map(lambda x: float(x), args))
+        logger.debug("Dataset size: %d", len(dataset))
+        return dataset
 
     def map_class_labels_to_1d(self, class_labels: np.ndarray):
         # shape is like (n, k)
@@ -94,3 +104,46 @@ class CSV(Tabular):
         train_loader = DataLoader(train_dataset, batch_size=batch_size, drop_last=True, shuffle=shuffle, **kwargs)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, drop_last=True, shuffle=False, **kwargs)
         return train_loader, test_loader
+
+
+class Rnaseq(Tabular):
+    def __init__(self, params):
+        super(Rnaseq, self).__init__(params)
+        self.px_z = dist.NegativeBinomial
+
+    def getDataLoaders(self, batch_size, shuffle, device, *args):
+        dataset = JerbyArnonDataset.from_csv("data/jerby_arnon/GSE115978_counts.csv", "data/jerby_arnon/GSE115978_cell.annotations.csv")
+        kwargs = {'num_workers': 1, 'pin_memory': True} if device == "cuda" else {}
+        n_train, n_test = _validate_shuffle_split(len(dataset), test_size=None, train_size=0.7)
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [n_train, n_test])
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, drop_last=True, shuffle=shuffle, **kwargs)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, drop_last=True, shuffle=False, **kwargs)
+        return train_loader, test_loader
+
+    def forward(self, x, K=1):
+        # x.shape is [batch_size, 23686, 1], for some reason
+        # make it [batch_size, 23686]
+        x = x.squeeze(-1)
+        try:
+            qz_params = self.enc(x)
+        except RuntimeError:
+            print("x.shape", x.shape)
+            print("self.enc.data_size", self.enc.data_size)
+            raise
+        qz_x = self.qz_x(*qz_params)
+        zs = qz_x.rsample(torch.Size([K]))
+        total_count = x.sum(dim=-1, keepdim=True).unsqueeze(0)
+        logits = get_mean_param(self.dec(zs))
+        try:
+            px_z = self.px_z(total_count, logits=logits)
+        except RuntimeError:
+            print("total_count.shape", total_count.shape, flush=True)
+            print("logits.shape", logits.shape, flush=True)
+            raise
+        return qz_x, px_z, zs
+
+    def generate(self, runPath, epoch):
+        raise NotImplementedError
+
+    def reconstruct(self, data, runPath, epoch):
+        raise NotImplementedError

@@ -24,7 +24,12 @@ class EncLinear(nn.Module):
         self.fc22 = nn.Linear(hidden_dim, manifold.coord_dim if not prior_iso else 1)
 
     def forward(self, x):
-        e = self.enc(x.view(*x.size()[:-len(self.data_size)], -1))
+        try:
+            e = self.enc(x.view(*x.size()[:-len(self.data_size)], -1))
+        except RuntimeError:
+            print("x:", x)
+            print("thing:", x.size()[:-len(self.data_size)])
+            raise
         mu = self.fc21(e)          # flatten data
         return mu, F.softplus(self.fc22(e)) + Constants.eta,  self.manifold
 
