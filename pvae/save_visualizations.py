@@ -59,8 +59,22 @@ if __name__ == '__main__':
         test_loader = torch.load(args.run_path + '/dataloader_test.pt')
     else:
         train_loader, test_loader = model.getDataLoaders(model.params.batch_size, True, device, *model.params.data_params)
+    
+    # test only:
     fig = model.plot_posterior_means(test_loader)
     filepath = "{}/posthoc_model_test_posterior_means.png".format(args.run_path)
+    logger.debug("writing posterior means plot...")
+    fig.write_image(filepath, scale=2)
+    logger.debug("saved image to %s", Path(filepath).resolve())
+
+    # all data:
+    def concat_iterators(*iterators):
+        for iterator in iterators:
+            for value in iterator:
+                yield value
+
+    fig = model.plot_posterior_means(concat_iterators(train_loader, test_loader))
+    filepath = "{}/posthoc_model_all_posterior_means.png".format(args.run_path)
     logger.debug("writing posterior means plot...")
     fig.write_image(filepath, scale=2)
     logger.debug("saved image to %s", Path(filepath).resolve())
