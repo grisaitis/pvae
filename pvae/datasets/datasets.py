@@ -1,3 +1,4 @@
+import pandas as pd
 import torch
 import torch.utils.data
 import numpy as np
@@ -138,3 +139,26 @@ class SyntheticDataset(torch.utils.data.Dataset):
         values_clones = np.concatenate([i for i in values_clones]).reshape(self.numberOfsiblings*length, self.dim)
         labels_clones = np.concatenate([i for i in labels_clones]).reshape(self.numberOfsiblings*length, self.depth+1)
         return images, labels_visited, values_clones, labels_clones
+
+
+class JerbyArnonDataset(torch.utils.data.Dataset):
+    def __init__(self, df_rnaseq: pd.DataFrame, df_cell_annotations: pd.DataFrame):
+        self.df_rnaseq = df_rnaseq
+        self.df_cell_annotations = df_cell_annotations
+
+    @classmethod
+    def from_csv(cls, path_rnaseq: str, path_cell_annotations: str):
+        df_rnaseq = pd.read_csv(path_rnaseq, index_col=0, sep=",", engine="c")
+        df_cell_annotations = pd.read_csv(path_cell_annotations)
+        assert df_rnaseq.shape[1] == df_cell_annotations.shape[0], (df_rnaseq.shape, df_cell_annotations.shape)
+        return cls(df_rnaseq, df_cell_annotations)
+
+    def __len__(self):
+        return len(self.df_cell_annotations)
+
+    def __getitem__(self, idx):
+        if isinstance(idx, int):
+            idx = [idx]
+        rnaseq = torch.Tensor(self.df_rnaseq.iloc[:, idx].to_numpy())
+        annotation = self.df_cell_annotations.iloc[idx].to_dict("records")
+        return (rnaseq, annotation)
