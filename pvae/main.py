@@ -67,7 +67,7 @@ parser.add_argument('--nl', type=str, default='ReLU', help='non linearity')
 parser.add_argument('--enc', type=str, default='Wrapped', help='allow to choose different implemented encoder',
                     choices=['Linear', 'Wrapped', 'Mob'])
 parser.add_argument('--dec', type=str, default='Wrapped', help='allow to choose different implemented decoder',
-                    choices=['Linear', 'Wrapped', 'Geo', 'Mob'])
+                    choices=['Linear', 'Wrapped', 'Geo', 'Mob', 'LinearWithScale'])
 
 ## Prior
 parser.add_argument('--prior-iso', action='store_true', default=False, help='isotropic prior')
@@ -106,6 +106,16 @@ else:
 sys.stdout = Logger('{}/run.log'.format(runPath))
 print('RunID:', runId)
 
+if __name__ == '__main__':
+    file_handler = logging.FileHandler('{}/python_logging.log'.format(runPath))
+    stream_handler = logging.StreamHandler()
+    logging.basicConfig(
+        level="DEBUG",
+        handlers=[file_handler, stream_handler],
+        format='%(asctime)s %(levelname)s:%(name)s:%(funcName)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
+
 # Save args to run
 with open('{}/args.json'.format(runPath), 'w') as fp:
     json.dump(args.__dict__, fp, indent=2, sort_keys=True)
@@ -128,11 +138,13 @@ def train(epoch, agg):
     model.train()
     b_loss, b_recon, b_kl = 0., 0., 0.
     for i, (data, _) in enumerate(train_loader):
+        # logger.debug("Training batch %d, data.shape %s", i, data.shape)
         data = data.to(device)
         optimizer.zero_grad()
-        qz_x, px_z, lik, kl, loss = loss_function(model, data, K=args.K, beta=args.beta, components=True, analytical_kl=args.analytical_kl)
-        probe_infnan(loss, "Training loss:")
-        loss.backward()
+        with torch.autograd.detect_anomaly():
+            qz_x, px_z, lik, kl, loss = loss_function(model, data, K=args.K, beta=args.beta, components=True, analytical_kl=args.analytical_kl)
+            # probe_infnan(loss, "Training loss:")
+            loss.backward()
         optimizer.step()
 
         b_loss += loss.item()
@@ -213,13 +225,6 @@ def get_runtime_info() -> dict:
 
 
 if __name__ == '__main__':
-    logging.basicConfig(
-        level="DEBUG",
-        # format="%(asctime)s %(name)s %(levelname)s %(message)s",
-        format='%(asctime)s %(levelname)s:%(module)s:%(funcName)s: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-    )
-
     with open('{}/runtime_info.json'.format(runPath), 'w') as fp:
         json.dump(get_runtime_info(), fp, indent=2, sort_keys=True)
 

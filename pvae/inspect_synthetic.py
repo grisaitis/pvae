@@ -26,6 +26,6 @@ if __name__ == "__main__":
     # print(len(df))
     # print(df.sample(10))
     # print(df[(df["d_1"] < 0) & (df["d_2"] == 0)])
-    labels_1d = model.map_class_labels_to_1d(labels.numpy())
+    labels_1d = model._map_class_labels_to_1d(labels.numpy())
     print(labels_1d)
     print(labels_1d.shape)

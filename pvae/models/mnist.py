@@ -22,6 +22,7 @@ from pvae import manifolds
 from .architectures import (
     EncLinear,
     DecLinear,
+    DecLinearWithScale,
     EncWrapped,
     DecWrapped,
     EncMob,

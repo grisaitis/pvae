@@ -3,7 +3,7 @@
 docker \
     run \
     --gpus all \
-    -d \
+    --rm \
     -v $(pwd):$(pwd) \
     -w $(pwd) \
     -u $(id -u):$(id -g) \

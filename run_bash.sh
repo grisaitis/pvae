@@ -7,5 +7,5 @@ docker \
     -it \
     -v $(pwd):$(pwd) \
     -w $(pwd) \
-    pvae \
+    pvae:1.3-cuda10.1-cudnn7-runtime \
     bash

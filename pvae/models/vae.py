@@ -2,6 +2,7 @@
 
 import logging
 import math
+import typing
 
 import numpy as np
 import pandas as pd
@@ -74,9 +75,26 @@ class VAE(nn.Module):
 
     def init_last_layer_bias(self, dataset): pass
 
-    def map_class_labels_to_1d(self, class_labels: np.ndarray) -> np.ndarray:
+    def _map_class_labels_to_1d(self, class_labels: np.ndarray) -> np.ndarray:
         assert class_labels.ndim == 1, class_labels.shape
         return class_labels
+
+    def _process_label_batches(self, class_labels: typing.List[torch.Tensor]) -> np.ndarray:
+        # Concatenate, convert to numpy, and map to 1d
+        class_labels_tensor = torch.cat(class_labels)
+        try:
+            class_label_data = class_labels_tensor.numpy()
+        except TypeError:
+            class_label_data = class_labels_tensor.cpu().numpy()
+        return self._map_class_labels_to_1d(class_label_data)
+
+    def _process_posterior_means_batches(self, posterior_means: typing.List[torch.Tensor]) -> np.ndarray:
+        # Concatenate, get the first two dimensions, and convert to numpy
+        means = torch.cat(posterior_means)
+        try:
+            return means[:, 0:2].numpy()
+        except TypeError:
+            return means[:, 0:2].cpu().numpy()
 
     def plot_posterior_means(self, data_loader: torch.utils.data.DataLoader) -> go.Figure:
         self.eval()
@@ -87,30 +105,21 @@ class VAE(nn.Module):
             posterior_means = []
             class_labels = []
             for i_batch, (data, labels) in enumerate(data_loader):
-                logger.debug("encoding batch %d", i_batch)
+                # logger.debug("encoding batch %d", i_batch)
                 data = data.to(model_device)
                 pz_x_params = self.enc(data)
                 pz_x_means = get_mean_param(pz_x_params)
                 posterior_means.append(pz_x_means)
                 class_labels.append(labels)
-        means = torch.cat(posterior_means)
-        class_labels_tensor = torch.cat(class_labels)
-        try:
-            data_numpy = {
-                "z0": means[:, 0].numpy(),
-                "z1": means[:, 1].numpy(),
-                "class_label": class_labels_tensor.numpy()
-            }
-        except TypeError:
-            data_numpy = {
-                "z0": means[:, 0].cpu().numpy(),
-                "z1": means[:, 1].cpu().numpy(),
-                "class_label": class_labels_tensor.cpu().numpy()
-            }
-        data_numpy["class_label"] = self.map_class_labels_to_1d(data_numpy["class_label"])
-        data_numpy["class_label"] = data_numpy["class_label"].astype(str)
-        logger.debug("shape of z0, z1, class_label: %s, %s, %s", data_numpy["z0"].shape, data_numpy["z1"].shape, data_numpy["class_label"].shape)
-        df_means = pd.DataFrame(data_numpy)
+                # logger.debug("iteration %d, data.shape, len(labels) %s, %s", i_batch, data.shape, len(labels))
+        df_means = pd.DataFrame(
+            data=self._process_posterior_means_batches(posterior_means),
+            columns=["z0", "z1"],
+        )
+        class_labels_1d = self._process_label_batches(class_labels)
+        logging.debug("len(class_labels_1d) %s", len(class_labels_1d))
+        df_means["class_label"] = class_labels_1d
+        df_means["class_label"] = df_means["class_label"].astype(str)
         if self.params.manifold == 'PoincareBall':
             radius = self.params.c**-0.5
             axis_range = [-(radius), radius]

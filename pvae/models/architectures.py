@@ -1,9 +1,12 @@
+import logging
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from numpy import prod
 from pvae.utils import Constants
 from pvae.ops.manifold_layers import GeodesicLayer, MobiusLayer, LogZero, ExpZero
+
+logger = logging.getLogger(__name__)
 
 
 def extra_hidden_layer(hidden_dim, non_lin):
@@ -24,12 +27,7 @@ class EncLinear(nn.Module):
         self.fc22 = nn.Linear(hidden_dim, manifold.coord_dim if not prior_iso else 1)
 
     def forward(self, x):
-        try:
-            e = self.enc(x.view(*x.size()[:-len(self.data_size)], -1))
-        except RuntimeError:
-            print("x:", x)
-            print("thing:", x.size()[:-len(self.data_size)])
-            raise
+        e = self.enc(x.view(*x.size()[:-len(self.data_size)], -1))
         mu = self.fc21(e)          # flatten data
         return mu, F.softplus(self.fc22(e)) + Constants.eta,  self.manifold
 
@@ -49,6 +47,18 @@ class DecLinear(nn.Module):
         d = self.dec(z)
         mu = self.fc31(d).view(*z.size()[:-1], *self.data_size)  # reshape data
         return mu, torch.ones_like(mu)
+
+
+class DecLinearWithScale(DecLinear):
+    def __init__(self, manifold, data_size, non_lin, num_hidden_layers, hidden_dim):
+        super(DecLinearWithScale, self).__init__(manifold, data_size, non_lin, num_hidden_layers, hidden_dim)
+        self.fc32 = nn.Linear(hidden_dim, prod(data_size))
+
+    def forward(self, z):
+        d = self.dec(z)
+        mu = self.fc31(d).view(*z.size()[:-1], *self.data_size)  # reshape data
+        scale = self.fc32(d).view(*z.size()[:-1], *self.data_size)  # reshape data
+        return mu, F.softplus(scale) + Constants.eta
 
 
 class EncWrapped(nn.Module):
