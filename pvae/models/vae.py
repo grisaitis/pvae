@@ -117,7 +117,7 @@ class VAE(nn.Module):
             columns=["z0", "z1"],
         )
         class_labels_1d = self._process_label_batches(class_labels)
-        logging.debug("len(class_labels_1d) %s", len(class_labels_1d))
+        logger.debug("len(class_labels_1d): %s", len(class_labels_1d))
         df_means["class_label"] = class_labels_1d
         df_means["class_label"] = df_means["class_label"].astype(str)
         if self.params.manifold == 'PoincareBall':

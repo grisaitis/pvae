@@ -58,7 +58,7 @@ parser.add_argument('--analytical-kl', action='store_true', default=False, help=
 parser.add_argument('--latent-dim', type=int, default=10, metavar='L', help='latent dimensionality (default: 10)')
 parser.add_argument('--c', type=float, default=1., help='curvature')
 parser.add_argument('--posterior', type=str, default='WrappedNormal', help='posterior distribution',
-                    choices=['WrappedNormal', 'RiemannianNormal', 'Normal'])
+                    choices=['WrappedNormal', 'RiemannianNormal', 'Normal', 'WrappedNormalDifferentLogProb'])
 
 ## Architecture
 parser.add_argument('--num-hidden-layers', type=int, default=1, metavar='H', help='number of hidden layers in enc and dec (default: 1)')
@@ -72,7 +72,7 @@ parser.add_argument('--dec', type=str, default='Wrapped', help='allow to choose 
 ## Prior
 parser.add_argument('--prior-iso', action='store_true', default=False, help='isotropic prior')
 parser.add_argument('--prior', type=str, default='WrappedNormal', help='prior distribution',
-                    choices=['WrappedNormal', 'RiemannianNormal', 'Normal'])
+                    choices=['WrappedNormal', 'RiemannianNormal', 'Normal', 'WrappedNormalDifferentLogProb'])
 parser.add_argument('--prior-std', type=float, default=1., help='scale stddev by this value (default:1.)')
 parser.add_argument('--learn-prior-std', action='store_true', default=False)
 
@@ -171,6 +171,7 @@ def test(epoch, agg):
     b_loss, b_mlik, b_recon, b_kl = 0., 0., 0., 0.
     with torch.no_grad():
         for i, (data, labels) in enumerate(test_loader):
+            logger.debug("Testing batch %d of %d", i, len(test_loader))
             data = data.to(device)
             qz_x, px_z, lik, kl, loss = loss_function(model, data, K=args.K, beta=args.beta, components=True)
             if epoch == args.epochs and args.iwae_samples > 0:
@@ -249,6 +250,3 @@ if __name__ == '__main__':
             save_model(model, runPath + '/model.rar')
             save_vars(agg, runPath + '/losses.rar')
             print("====>            Time: {:03.2f} s".format(time.time() - t))
-
-        print('p(z) params:')
-        print(model.pz_params)

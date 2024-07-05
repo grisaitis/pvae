@@ -14,7 +14,7 @@ from pvae.utils import get_mean_param
 from .vae import VAE
 from pvae.vis import array_plot
 
-from pvae.distributions import RiemannianNormal, WrappedNormal
+from pvae.distributions import RiemannianNormal, WrappedNormal, WrappedNormalDifferentLogProb
 from torch.distributions import Normal
 from pvae import manifolds
 from .architectures import EncLinear, DecLinear, EncWrapped, DecWrapped, EncMob, DecMob, DecGeo, DecLinearWithScale
