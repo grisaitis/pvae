@@ -3,7 +3,7 @@
 docker \
     run \
     --gpus all \
-    --rm \
+    -d \
     -v $(pwd):$(pwd) \
     -w $(pwd) \
     -u $(id -u):$(id -g) \
@@ -11,7 +11,8 @@ docker \
     python -u pvae/main.py \
     --model rnaseq \
     --manifold PoincareBall \
-    --c 0.25 \
+    --c 1.0 \
+    --K 5 \
     --latent-dim 2 \
     --hidden-dim 50 \
     --prior-std 1.0 \
@@ -20,8 +21,8 @@ docker \
     --enc Wrapped \
     --prior WrappedNormal \
     --posterior WrappedNormal \
-    --epochs 512 \
-    --save-freq 512 \
+    --epochs 128 \
+    --save-freq 128 \
     --lr 5e-4 \
     --batch-size 128 \
     --iwae-samples 5000

@@ -11,16 +11,17 @@ docker \
     python -u pvae/main.py \
     --model rnaseq \
     --manifold Euclidean \
+    --K 5 \
     --latent-dim 2 \
-    --hidden-dim 100 \
+    --hidden-dim 50 \
     --prior-std 1.0 \
     --data-size 17324 \
     --dec Linear \
     --enc Linear \
     --prior Normal \
     --posterior Normal \
-    --epochs 1000 \
-    --save-freq 1000 \
-    --lr 1e-4 \
-    --batch-size 256 \
+    --epochs 128 \
+    --save-freq 128 \
+    --lr 5e-4 \
+    --batch-size 128 \
     --iwae-samples 5000
