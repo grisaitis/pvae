@@ -10,14 +10,15 @@ docker \
     pvae:1.3-cuda10.1-cudnn7-runtime \
     python -u pvae/main.py \
     --model mnist \
-    --manifold Euclidean \
+    --manifold PoincareBall \
+    --c 4.0 \
     --K 1 \
     --latent-dim 2 \
     --hidden-dim 600 \
-    --dec Linear \
-    --enc Linear \
-    --prior Normal \
-    --posterior Normal \
+    --dec Geo \
+    --enc Wrapped \
+    --prior WrappedNormalDifferentLogProb \
+    --posterior WrappedNormalDifferentLogProb \
     --epochs 80 \
     --save-freq 5 \
     --lr 5e-4 \

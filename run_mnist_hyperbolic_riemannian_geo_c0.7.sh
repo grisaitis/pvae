@@ -7,20 +7,20 @@ docker \
     -v $(pwd):$(pwd) \
     -w $(pwd) \
     -u $(id -u):$(id -g) \
-    pvae \
+    pvae:1.3-cuda10.1-cudnn7-runtime \
     python -u pvae/main.py \
     --model mnist \
     --manifold PoincareBall \
-    --save-freq 0 \
-    --epochs 80 \
-    --batch-size 128 \
-    --lr 5e-4 \
+    --c 0.7 \
+    --K 1 \
     --latent-dim 2 \
-    --c 1.4 \
-    --posterior RiemannianNormal \
     --hidden-dim 600 \
-    --enc Wrapped \
     --dec Geo \
+    --enc Wrapped \
     --prior RiemannianNormal \
-    --iwae-samples 5000 \
-    --seed 42
+    --posterior RiemannianNormal \
+    --epochs 80 \
+    --save-freq 5 \
+    --lr 5e-4 \
+    --batch-size 128 \
+    --iwae-samples 5000

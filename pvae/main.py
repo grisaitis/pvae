@@ -229,9 +229,9 @@ if __name__ == '__main__':
     with open('{}/runtime_info.json'.format(runPath), 'w') as fp:
         json.dump(get_runtime_info(), fp, indent=2, sort_keys=True)
 
-    if args.model == "tree":
+    if args.model == "tree" or args.model == "rnaseq":
         logger.debug("Saving dataloaders...")
-        torch.save(train_loader, runPath + "/dataloader_train.pt")
+        # torch.save(train_loader, runPath + "/dataloader_train.pt")
         torch.save(test_loader, runPath + "/dataloader_test.pt")
 
     logger.debug("Starting training...")

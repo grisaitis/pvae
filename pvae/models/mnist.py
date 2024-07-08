@@ -15,7 +15,7 @@ from pvae.vis_other import plot_posterior_means_for_df
 from .vae import VAE
 from pvae.utils import Constants
 
-from pvae.distributions import RiemannianNormal, WrappedNormal
+from pvae.distributions import RiemannianNormal, WrappedNormal, WrappedNormalDifferentLogProb
 from torch.distributions import Normal
 
 from pvae import manifolds

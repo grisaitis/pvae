@@ -11,7 +11,7 @@ docker \
     python -u pvae/main.py \
     --model rnaseq \
     --manifold PoincareBall \
-    --c 1.0 \
+    --c 0.7 \
     --K 5 \
     --latent-dim 2 \
     --hidden-dim 50 \
@@ -19,11 +19,10 @@ docker \
     --data-size 17324 \
     --dec Geo \
     --enc Wrapped \
-    --prior WrappedNormalDifferentLogProb \
-    --posterior WrappedNormalDifferentLogProb \
+    --prior RiemannianNormal \
+    --posterior RiemannianNormal \
     --epochs 256 \
-    --save-freq 1 \
+    --save-freq 8 \
     --lr 5e-4 \
     --batch-size 128 \
-    --iwae-samples 5000 \
-    --analytical-kl True
+    --iwae-samples 5000

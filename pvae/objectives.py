@@ -51,10 +51,12 @@ def vae_objective(model, x, K=1, beta=1.0, components=False, analytical_kl=False
     lpx_z = px_z.log_prob(x.expand(px_z.batch_shape)).view(flat_rest).sum(-1)
 
     pz = model.pz(*model.pz_params)
-    # kld = dist.kl_divergence(qz_x, pz).unsqueeze(0).sum(-1) if \
-    #     has_analytic_kl(type(qz_x), model.pz) and analytical_kl else \
-    #     qz_x.log_prob(zs).sum(-1) - pz.log_prob(zs).sum(-1)    
-    kld = my_analytic_kl(qz_x, pz)
+    # if analytical_kl:
+    #     kld = my_analytic_kl(qz_x, pz)
+    # else:
+    kld = dist.kl_divergence(qz_x, pz).unsqueeze(0).sum(-1) if \
+        has_analytic_kl(type(qz_x), model.pz) and analytical_kl else \
+        qz_x.log_prob(zs).sum(-1) - pz.log_prob(zs).sum(-1)    
 
     obj = -lpx_z.mean(0).sum() + beta * kld.mean(0).sum()
     return (qz_x, px_z, lpx_z, kld, obj) if components else obj

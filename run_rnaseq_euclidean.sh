@@ -20,8 +20,8 @@ docker \
     --enc Linear \
     --prior Normal \
     --posterior Normal \
-    --epochs 128 \
-    --save-freq 128 \
+    --epochs 256 \
+    --save-freq 1 \
     --lr 5e-4 \
     --batch-size 128 \
     --iwae-samples 5000

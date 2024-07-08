@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as dist
+import torch.utils.data
 from torch.utils.data import DataLoader
 
 import math
@@ -97,11 +98,12 @@ class CSV(Tabular):
         super(CSV, self).__init__(params)
 
     def getDataLoaders(self, batch_size, shuffle, device, *args):
+        split_generator = torch.Generator().manual_seed(self.params.seed)
         kwargs = {'num_workers': 1, 'pin_memory': True} if device == "cuda" else {}
         print('Load training data...')
         dataset = CSVDataset(*args)
         n_train, n_test = _validate_shuffle_split(len(dataset), test_size=None, train_size=0.7)
-        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [n_train, n_test])
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [n_train, n_test], generator=split_generator)
         train_loader = DataLoader(train_dataset, batch_size=batch_size, drop_last=True, shuffle=shuffle, **kwargs)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, drop_last=True, shuffle=False, **kwargs)
         return train_loader, test_loader
